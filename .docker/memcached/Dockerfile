@@ -1,0 +1,14 @@
+FROM memcached:latest
+
+USER root
+RUN apt-get update && apt-get install -y curl
+
+USER memcache
+
+ARG MEMCACHED_HOST
+ENV MEMCACHED_HOST ${MEMCACHED_HOST}
+
+ARG MEMCACHED_PORT
+ENV MEMCACHED_PORT ${MEMCACHED_PORT}
+
+CMD /etc/init.sh ${MEMCACHED_HOST} ${MEMCACHED_PORT}

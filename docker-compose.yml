@@ -1,0 +1,77 @@
+version: "3.2"
+services:
+  memcachedreplica1:
+    build:
+      context: .docker/memcached
+      args:
+        MEMCACHED_HOST: ${MEMCACHED_HOST_REPLICA_1}
+        MEMCACHED_PORT: ${MEMCACHED_PORT_REPLICA_1}
+    container_name: ${PREFIX}_${ENV}_memcachedreplica_1
+    hostname: ${PREFIX}_${ENV}_memcachedreplica_1
+    restart: unless-stopped
+    volumes:
+      - ./.docker/memcached/init.sh:/etc/init.sh
+    env_file:
+        - .env
+    ports:
+        - "${MEMCACHED_PORT_REPLICA_1}:${MEMCACHED_PORT_REPLICA_1}"
+  memcachedreplica2:
+    build:
+      context: .docker/memcached
+      args:
+        MEMCACHED_HOST: ${MEMCACHED_HOST_REPLICA_2}
+        MEMCACHED_PORT: ${MEMCACHED_PORT_REPLICA_2}
+    container_name: ${PREFIX}_${ENV}_memcachedreplica_2
+    hostname: ${PREFIX}_${ENV}_memcachedreplica_2
+    restart: unless-stopped
+    volumes:
+      - ./.docker/memcached/init.sh:/etc/init.sh
+    env_file:
+        - .env
+    ports:
+        - "${MEMCACHED_PORT_REPLICA_2}:${MEMCACHED_PORT_REPLICA_2}"
+  memcachedreplica3:
+    build:
+      context: .docker/memcached
+      args:
+        MEMCACHED_HOST: ${MEMCACHED_HOST_REPLICA_3}
+        MEMCACHED_PORT: ${MEMCACHED_PORT_REPLICA_3}
+    container_name: ${PREFIX}_${ENV}_memcachedreplica_3
+    hostname: ${PREFIX}_${ENV}_memcachedreplica_3
+    restart: unless-stopped
+    volumes:
+      - ./.docker/memcached/init.sh:/etc/init.sh
+    env_file:
+        - .env
+    ports:
+        - "${MEMCACHED_PORT_REPLICA_3}:${MEMCACHED_PORT_REPLICA_3}"
+  memcachedreplica4:
+    build:
+      context: .docker/memcached
+      args:
+        MEMCACHED_HOST: ${MEMCACHED_HOST_REPLICA_4}
+        MEMCACHED_PORT: ${MEMCACHED_PORT_REPLICA_4}
+    container_name: ${PREFIX}_${ENV}_memcachedreplica_4
+    hostname: ${PREFIX}_${ENV}_memcachedreplica_4
+    restart: unless-stopped
+    volumes:
+      - ./.docker/memcached/init.sh:/etc/init.sh
+    env_file:
+        - .env
+    ports:
+        - "${MEMCACHED_PORT_REPLICA_4}:${MEMCACHED_PORT_REPLICA_4}"
+  mcrouter:
+    build:
+      context: .docker/mcrouter
+    links:
+        - memcachedreplica1:memcachedreplica1
+        - memcachedreplica2:memcachedreplica2
+        - memcachedreplica3:memcachedreplica3
+        - memcachedreplica4:memcachedreplica4
+    command: mcrouter --config-str='{"pools":{"A":{"servers":["memcachedreplica1:${MEMCACHED_PORT_REPLICA_1}", "memcachedreplica2:${MEMCACHED_PORT_REPLICA_2}", "memcachedreplica3:${MEMCACHED_PORT_REPLICA_3}", "memcachedreplica4:${MEMCACHED_PORT_REPLICA_4}"]}},"route":{"type":"OperationSelectorRoute","operation_policies":{"add":"AllFastestRoute|Pool|A","delete":"AllFastestRoute|Pool|A","get":"AllFastestRoute|Pool|A","set":"AllFastestRoute|Pool|A"}}}' -p ${MCROUTER_PORT}
+    ports:
+        - ${MCROUTER_PORT}:11211
+networks:
+  default:
+    name:
+      net_${ENV}_${PREFIX}_backend
